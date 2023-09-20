@@ -1,7 +1,10 @@
-function searchFromStatus(el) {
-    $('form#searchForm input[name="search[status]"]').val($(el).data('value'));
-    $('form#searchForm').submit();
-}
+$('select[name="search[sort]"]').change(function (e) { 
+    $('#searchForm').submit();
+  });
+
+$('.transform-search').click(function() {
+    $('form#searchForm').attr('action', $(this).data('href')).submit();
+})
 
 $('a.page-link').click(function () { 
     var page = $(this).data('page');
@@ -15,15 +18,6 @@ $('a[name=next-page]').click(function() {
     $('form#searchForm').submit();
 });
 
-$('select[name="search[sorting]"]').change(function() {
-    $('form#searchForm').submit();
-});
-
-$('.transform-search').click(function() {
-    $('form#searchForm').attr('action', $(this).data('href')).submit();
-})
-
-
 function previewImage() {
     var previewImg  = $('#preview-image');
     var file        = event.target.files[0];
@@ -32,7 +26,6 @@ function previewImage() {
 
     const extensions  = ["jpeg", "jpg", "png"];
     isExtAccept       = extensions.includes(extension);
-
     if (!(isExtAccept)) {
         $(previewImg).empty();
         $(previewImg).html("<span class='text-danger'>Định dạng không hợp lệ </span>");
@@ -128,7 +121,6 @@ function redirectForm(el, type) {
     var url = $(el).data('href');
     if (type == 'edit') {
         var id = $(el).data('id');
-        $('form#searchForm input[name=id]').val(id);
         $('form#searchForm').attr('action', url).submit();
     }
 }

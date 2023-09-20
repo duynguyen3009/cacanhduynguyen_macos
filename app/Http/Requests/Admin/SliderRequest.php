@@ -36,9 +36,9 @@ class SliderRequest extends FormRequest
             'url'               => 'required|url',
             'image'             => "$required|image|mimes:jpeg,jpg,png|max:10000", // max 10000kb
             'status'            => 'not_in:0',
-            'sequence'          => 'required|integer',
-            'start_date'        => 'required|date',
-            'end_date'          => 'required|date|after_or_equal:start_date'
+            'sequence'          => 'bail|required|integer',
+            'start_date'        => 'bail|required|date_format:d/m/Y',
+            'end_date'          => 'bail|required|date_format:d/m/Y|after_or_equal:start_date'
         ];
     }
 

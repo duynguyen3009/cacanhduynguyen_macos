@@ -18,7 +18,8 @@ class Slider extends Model
     {
         return Attribute::make(
             get: fn (string $value) => \Carbon\Carbon::parse($value)->format(config('params.format_date')),
-            set: fn (string $value) => \Carbon\Carbon::parse($value)->format(config('params.format_date_to_db')),
+            set: fn (string $value) => \Carbon\Carbon::createFromFormat(config('params.format_date'), $value)->format(config('params.format_date_to_db')),
+
         );
     }
     
@@ -26,7 +27,7 @@ class Slider extends Model
     {
         return Attribute::make(
             get: fn (string $value) => \Carbon\Carbon::parse($value)->format(config('params.format_date')),
-            set: fn (string $value) => \Carbon\Carbon::parse($value)->format(config('params.format_date_to_db')),
+            set: fn (string $value) => \Carbon\Carbon::createFromFormat(config('params.format_date'), $value)->format(config('params.format_date_to_db')),
         );
     }
 }

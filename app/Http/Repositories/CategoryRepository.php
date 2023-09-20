@@ -13,8 +13,12 @@ class CategoryRepository
     {
         $searchInputs = isset($req['search']) ? ($req['search']) : null;
 
-        $qb = MainModel::query();
-
+        $qb = DB::table('category AS c')
+           ->select([
+            '*',
+            DB::raw('(CASE WHEN parent = 0 THEN "YES" ELSE (SELECT `name` FROM category as c1 WHERE c1.id = c.parent) END) as parent')
+           ]);
+       
         if (isset($searchInputs['status'])) {
             $qb = $qb->where('status', $searchInputs['status']);
         }
@@ -23,7 +27,7 @@ class CategoryRepository
             $qb = $qb->where($searchInputs['key_search'], 'like', '%'. $searchInputs['value_search'] .'%');
         }
 
-        $sorting = isset($searchInputs['sorting']) ? $searchInputs['sorting'] : 'sequence';
+        $sorting = isset($searchInputs['sort']) ? $searchInputs['sort'] : 'sequence';
         $qb = $qb->orderBy($sorting, 'desc');
         $qb = $qb->paginate(config('params.per_page'));
 
@@ -44,9 +48,10 @@ class CategoryRepository
     {
         $record = MainModel::findOrFail($formFields['id']);
 
-        $record->name               = $formFields['name'];
-        $record->status             = $formFields['status'];
-        $record->sequence           = $formFields['sequence'];
+        $record->name     = $formFields['name'];
+        $record->status   = $formFields['status'];
+        $record->sequence = $formFields['sequence'];
+        $record->parent   = $formFields['parent'];
         
         $record->save();
 
@@ -91,5 +96,12 @@ class CategoryRepository
         $records = MainModel::whereIn('id', $ids);
 
         return $records;
+    }
+
+    public function getListDropdown()
+    {
+        $list = MainModel::pluck('name', 'id');
+        
+        return $list;
     }
 }

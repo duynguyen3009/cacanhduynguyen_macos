@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\SliderController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\UserController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -33,13 +35,13 @@ Route::group([
     Route::name($prefixAdmin .'.')->group(function () {
         
         // DASHBOARD
-        // Route::get('dashboard', function () { return view('admin.dashboard');})->name('dashboard');
+        Route::get('dashboard', function () { return view('admin.dashboard.index');})->name('dashboard.index');
 
         //SLIDER
         $slider = 'slider';
         Route::group(['prefix'=> $slider, 'as'=> $slider .'.'], function(){
             Route::any('/', [SliderController::class, 'index'])->name('index');
-            Route::any('form', [SliderController::class, 'form'])->name('form'); # phải để any
+            Route::any('form/{id?}', [SliderController::class, 'form'])->name('form'); # phải để any
             Route::post('save', [SliderController::class, 'save'])->name('save');
             Route::post('delete-data', [SliderController::class, 'deleteData'])->name('deleteData');
             Route::post('update-status', [SliderController::class, 'updateStatus'])->name('updateStatus');
@@ -50,7 +52,7 @@ Route::group([
         $category = 'category';
         Route::group(['prefix'=> $category, 'as'=> $category .'.'], function(){
             Route::any('/', [CategoryController::class, 'index'])->name('index');
-            Route::any('form', [CategoryController::class, 'form'])->name('form');
+            Route::any('form/{id?}', [CategoryController::class, 'form'])->name('form');
             Route::post('save', [CategoryController::class, 'save'])->name('save');
             Route::post('delete-data', [CategoryController::class, 'deleteData'])->name('deleteData');
             Route::post('update-status', [CategoryController::class, 'updateStatus'])->name('updateStatus');
@@ -61,7 +63,14 @@ Route::group([
         $setting = 'setting';
         Route::group(['prefix'=> $setting, 'as'=> $setting .'.'], function(){
             Route::any('/', [SettingController::class, 'index'])->name('index');
-            // Route::any('form', [CategoryController::class, 'form'])->name('form');
+            Route::post('save', [SettingController::class, 'save'])->name('save');
+        });
+
+        //USER
+        $user = 'user';
+        Route::group(['prefix'=> $user, 'as'=> $user .'.'], function(){
+            Route::any('/', [UserController::class, 'index'])->name('index');
+            Route::any('form/{id?}', [UserController::class, 'form'])->name('form');
             // Route::post('save', [CategoryController::class, 'save'])->name('save');
             // Route::post('delete-data', [CategoryController::class, 'deleteData'])->name('deleteData');
             // Route::post('update-status', [CategoryController::class, 'updateStatus'])->name('updateStatus');

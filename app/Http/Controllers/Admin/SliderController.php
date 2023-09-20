@@ -37,46 +37,42 @@ class SliderController extends AdminController
 
     public function index(Request $request)
     {
-        $request                            = $request->all();
-        $request['fieldsAcceptSearch']      = $this->fieldsAcceptSearch;
-        $request['fieldsAcceptSorting']     = $this->fieldsAcceptSorting;
+        $request                        = $request->all();
+        $dataLoadSearch                 = [];
+        $dataLoadSearch['sort']         = $this->fieldsAcceptSorting;
+        $dataLoadSearch['key_search']   = $this->fieldsAcceptSearch;
+        $dataLoadSearch['active']       = $this->sliderRepository->countStatus(1);
+        $dataLoadSearch['inactive']     = $this->sliderRepository->countStatus(0);
 
         $records = $this->sliderRepository->list($request);
 
-        
-        $cntStatusActive    = $this->sliderRepository->countStatus(1);
-        $cntStatusInactive  = $this->sliderRepository->countStatus(0);
-
-        $breadcrumb = ['Quản Lý', 'Slider'];
-        
-        return view('admin.slider.index', compact('breadcrumb', 'request', 'records', 'cntStatusActive', 'cntStatusInactive'));
+        return view('admin.slider.index', compact('dataLoadSearch', 'records'));
     }
 
-    public function form(Request $request)
+    public function form(Request $request, $id = null)
     {
         $request = $request->all();
         $record = null;
-        if (!empty($request['id'])) {
-            $record = $this->sliderRepository->getRecord($request['id'])->first();
+        if (!empty($id)) {
+            $record = $this->sliderRepository->getRecord($id)->first();
         }
-
+        
         return view('admin.slider.form', compact('request', 'record'));
     }
 
     public function save(SliderRequest $request)
     {
         $formFields             = $request->all();
+        $transformSearch        = json_decode($formFields['transform_search'], true);
         $file                   = $request->file('image');
         $fileName               = null;
         $formFields['status']   = !isset($formFields['status']) ? 0 : 1;
-
         if (!empty($file)) {
             $fileName               = date("YmdHms") . '.' .$file->extension();
             $formFields['image']    = $fileName;
         } 
         
         $formFieldsAccept       = Arr::only($formFields, ['id', 'image', 'name', 'url', 'description' ,'status', 'sequence', 'start_date', 'end_date']);
-
         //case edit
         if (isset($formFields['id'])) {
             if (isset($formFieldsAccept['image'])) { // chọn ảnh mới
@@ -93,17 +89,17 @@ class SliderController extends AdminController
                 $formFieldsAccept['image'] = $formFields['old_image'];
             }
             $id = $this->sliderRepository->updateRecord($formFieldsAccept);
-            session()->flash('action_success', __('messages.update_success', ['attribute' => $id]));
+            session()->flash('action_success', __('messages.update_success', ['attribute' => $formFieldsAccept['name']]));
             
         } else {
             $file->storeAs($this->storagePath, $fileName); 
             $this->sliderRepository->insert($formFieldsAccept);
             session()->flash('action_success', __('messages.insert_success', ['attribute' => $formFieldsAccept['name']]));
         }
-
+        
         return response()->json([
             'success'   => true,
-            'url'       => route('admin.slider.index'),
+            'url'       => route('admin.slider.index', $transformSearch),
         ]);
     }
 

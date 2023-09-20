@@ -11,19 +11,19 @@ class SliderRepository
 
     public function list($req)
     {
-        $searchInputs = isset($req['search']) ? ($req['search']) : null;
-
+        $searchInputs = isset($req['search']) ? ($req['search']) : [];
         $qb = MainModel::query();
 
         if (isset($searchInputs['status'])) {
             $qb = $qb->where('status', $searchInputs['status']);
         }
 
-        if (!empty($searchInputs['key_search']) && !empty($searchInputs['value_search'])) {
+        // if (!empty($searchInputs['key_search']) && !empty($searchInputs['value_search'])) {
+        if (isset($searchInputs['key_search']) && isset($searchInputs['value_search'])) {
             $qb = $qb->where($searchInputs['key_search'], 'like', '%'. $searchInputs['value_search'] .'%');
         }
 
-        $sorting = isset($searchInputs['sorting']) ? $searchInputs['sorting'] : 'sequence';
+        $sorting = isset($searchInputs['sort']) ? $searchInputs['sort'] : 'sequence';
         $qb = $qb->orderBy($sorting, 'desc');
         $qb = $qb->paginate(config('params.per_page'));
 
@@ -43,7 +43,6 @@ class SliderRepository
     public function updateRecord($formFields)
     {
         $record = MainModel::findOrFail($formFields['id']);
-
         $record->image              = $formFields['image'];
         $record->name               = $formFields['name'];
         $record->url               = $formFields['url'];

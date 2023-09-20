@@ -6,6 +6,11 @@ return [
         'type'          => 'input',
         'required'      => true,
     ],
+    'parent' => [
+        'label'         => 'Danh mục cha hoặc con',
+        'type'          => 'select2',
+        'required'      => true,
+    ],
     'status' => [
         'label'         => 'Trạng thái',
         'type'          => 'checkbox',

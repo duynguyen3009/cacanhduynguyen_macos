@@ -2,103 +2,86 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Repositories\CategoryRepository;
-use App\Http\Requests\Admin\CategoryRequest;
+use App\Http\Repositories\SettingRepository;
+use App\Http\Requests\Admin\SettingRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 
 class SettingController extends AdminController
 {
-    protected $categoryRepository;
-    protected $fieldsAcceptSearch   = [
-        ''              => 'Chọn trường tìm kiếm', 
-        'id'            => 'ID', 
-        'name'          => 'Tên', 
-    ];
-    protected $fieldsAcceptSorting = [ // show select để orderBy
-        ''              => 'Sắp xếp giảm dần',
-        'id'            => 'Id', 
-        'name'          => 'Tên', 
-        'sequence'      => 'Vị trí',
-    ];
-
+    protected $settingRepository;
+    protected $storagePath = 'public'. DIRECTORY_SEPARATOR ;
 
     public function __construct(
-        CategoryRepository $categoryRepository
+        SettingRepository $settingRepository
     ) {
-        $this->categoryRepository = $categoryRepository;
+        $this->settingRepository = $settingRepository;
     }
 
     public function index(Request $request)
     {
-        $request                            = $request->all();
-        $request['fieldsAcceptSearch']      = $this->fieldsAcceptSearch;
-        $request['fieldsAcceptSorting']     = $this->fieldsAcceptSorting;
+        $records = $this->settingRepository->getList();
 
-        $records = $this->categoryRepository->list($request);
+        if ($records->count() == 0) {
+            $mode = 'add';
+            $record = null;
+        } else {
+            $mode = 'edit';
+            $record = $records->first();
+        }
         
-        $cntStatusActive    = $this->categoryRepository->countStatus(1);
-        $cntStatusInactive  = $this->categoryRepository->countStatus(0);
-
-        $breadcrumb = ['Quản Lý', 'Danh mục'];
-        
-        return view('admin.category.index', compact('breadcrumb', 'request', 'records', 'cntStatusActive', 'cntStatusInactive'));
+        return view('admin.setting.form', compact('record', 'mode'));
     }
 
-    // public function form(Request $request)
-    // {
-    //     $request = $request->all();
-    //     $record = null;
-    //     if (!empty($request['id'])) {
-    //         $record = $this->categoryRepository->getRecord($request['id'])->first();
-    //     }
-
-    //     return view('admin.category.form', compact('request', 'record'));
-    // }
-
-    public function save(CategoryRequest $request)
+    public function save(SettingRequest $request)
     {
-        // $formFields             = $request->all();
-        // $formFields['status']   = !isset($formFields['status']) ? 0 : 1;
+        $formFields             = $request->all();
+        $file                   = $request->file('logo');
+        $fileName               = null;
 
-        // $formFieldsAccept       = Arr::only($formFields, ['id', 'name', 'status', 'sequence']);
+        if (!empty($file)) {
+            $fileName              = 'logo' . '.' .$file->extension();
+            $formFields['logo']    = $fileName;
+        } 
+        
+        $formFieldsAccept       = Arr::only($formFields, ['company_name','phone_number','address','email','consulation_time','link_facebook','link_youtube','link_tiktok','link_googlemap','logo']);
 
-        // //case edit
+        //case edit
+        $records = $this->settingRepository->getList();
+
+        // $record = $records->first();
+        // dd($record);
         // if (isset($formFields['id'])) {
-        //     $id = $this->categoryRepository->updateRecord($formFieldsAccept);
-        //     session()->flash('action_success', __('messages.update_success', ['attribute' => $id]));
+        if ($records->count() > 0) {
+            $record = $records->first();
+            if (isset($formFieldsAccept['logo'])) { // chọn ảnh mới
+                $imageName      = $formFields['old_logo'];
+                $pathImageName  = storage_path('app' . DIRECTORY_SEPARATOR . $this->storagePath . $imageName);
+                if (!empty($imageName)) {
+                    if (file_exists($pathImageName)) {
+                        unlink($pathImageName);
+                    } 
+                } 
+                $file->storeAs($this->storagePath, $fileName); 
+
+            } else { // không chọn ảnh mới
+                $formFieldsAccept['logo'] = $formFields['old_logo'];
+            }
+            // dump($records->first());
+            $formFieldsAccept['id'] = $record->id;
+            $id = $this->settingRepository->updateRecord($formFieldsAccept);
+            session()->flash('action_success', __('messages.update_success', ['attribute' => '']));
             
-        // } else {
-        //     $this->categoryRepository->insert($formFieldsAccept);
-        //     session()->flash('action_success', __('messages.insert_success', ['attribute' => $formFieldsAccept['name']]));
-        // }
+        } else {
+            $file->storeAs($this->storagePath, $fileName); 
+            $this->settingRepository->insert($formFieldsAccept);
+            // session()->flash('action_success', __('messages.insert_success', ['attribute' => $formFieldsAccept['name']]));
+        }
 
-        // return response()->json([
-        //     'success'   => true,
-        //     'url'       => route('admin.category.index'),
-        // ]);
-    }
+        return response()->json([
+            'success'   => true,
+            'url'       => route('admin.setting.index'),
+        ]);
 
-    public function deleteData(Request $request)
-    {
-        // $request    = $request->all();
-        // $id         = $request['id'];
-
-        // $record = $this->categoryRepository->getRecord($id)->first();
-
-        // if (empty($record)) {
-        //     logger("Category table is not exist record of id: " . $id);
-        //     return response()->json([
-        //         'success'   => false,
-        //         'msg'       => __('messages.delete_recored_fail', ['id' => $id]),
-        //     ]);
-        // }
-        
-        // $this->categoryRepository->deleteData($id);
-
-        // return response()->json([
-        //     'success' => true,
-        //     'msg' => __('messages.delete_recored_success', ['id' => $id]),
-        // ]);
     }
 }

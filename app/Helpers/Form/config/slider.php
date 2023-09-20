@@ -11,11 +11,7 @@ return [
         'type'          => 'input',
         'required'      => true,
     ],
-    'status' => [
-        'label'         => 'Trạng thái',
-        'type'          => 'checkbox',
-        'required'      => false,
-    ],
+   
     'sequence' => [
         'label'         => 'Vị trí',
         'type'          => 'input',
@@ -30,6 +26,11 @@ return [
         'label'         => 'Ngày kết thúc trình bày',
         'type'          => 'datepicker',
         'required'      => true,
+    ],
+    'status' => [
+        'label'         => 'Trạng thái',
+        'type'          => 'checkbox',
+        'required'      => false,
     ],
     'description' => [
         'label'         => 'Miêu tả',

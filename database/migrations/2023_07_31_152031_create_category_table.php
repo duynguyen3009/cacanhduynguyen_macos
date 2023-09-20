@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->integer('status');
             $table->integer('sequence');
+            $table->integer('parent');
             $table->timestamps();
         });
     }

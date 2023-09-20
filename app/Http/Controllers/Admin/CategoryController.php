@@ -31,51 +31,51 @@ class CategoryController extends AdminController
 
     public function index(Request $request)
     {
-        $request                            = $request->all();
-        $request['fieldsAcceptSearch']      = $this->fieldsAcceptSearch;
-        $request['fieldsAcceptSorting']     = $this->fieldsAcceptSorting;
+        $request                        = $request->all();
+        $dataLoadSearch                 = [];
+        $dataLoadSearch['sort']         = $this->fieldsAcceptSorting;
+        $dataLoadSearch['key_search']   = $this->fieldsAcceptSearch;
+        $dataLoadSearch['active']       = $this->categoryRepository->countStatus(1);
+        $dataLoadSearch['inactive']     = $this->categoryRepository->countStatus(0);
 
         $records = $this->categoryRepository->list($request);
-        
-        $cntStatusActive    = $this->categoryRepository->countStatus(1);
-        $cntStatusInactive  = $this->categoryRepository->countStatus(0);
 
-        $breadcrumb = ['Quản Lý', 'Danh mục'];
-        
-        return view('admin.category.index', compact('breadcrumb', 'request', 'records', 'cntStatusActive', 'cntStatusInactive'));
+        return view('admin.category.index', compact('dataLoadSearch', 'records'));
     }
 
-    public function form(Request $request)
+    public function form(Request $request, $id = null)
     {
         $request = $request->all();
         $record = null;
-        if (!empty($request['id'])) {
-            $record = $this->categoryRepository->getRecord($request['id'])->first();
+        if (!empty($id)) {
+            $record = $this->categoryRepository->getRecord($id)->first();
         }
 
-        return view('admin.category.form', compact('request', 'record'));
+        $listDropDown = $this->categoryRepository->getListDropdown();
+        $listDropDown->prepend('Danh mục cha', '0');        
+        return view('admin.category.form', compact('request', 'record', 'listDropDown'));
     }
 
     public function save(CategoryRequest $request)
     {
         $formFields             = $request->all();
+        $transformSearch        = json_decode($formFields['transform_search'], true);
         $formFields['status']   = !isset($formFields['status']) ? 0 : 1;
-
-        $formFieldsAccept       = Arr::only($formFields, ['id', 'name', 'status', 'sequence']);
-
+        
+        $formFieldsAccept       = Arr::only($formFields, ['id', 'name' ,'status', 'sequence', 'parent']);
         //case edit
         if (isset($formFields['id'])) {
             $id = $this->categoryRepository->updateRecord($formFieldsAccept);
-            session()->flash('action_success', __('messages.update_success', ['attribute' => $id]));
+            session()->flash('action_success', __('messages.update_success', ['attribute' => $formFieldsAccept['name']]));
             
         } else {
             $this->categoryRepository->insert($formFieldsAccept);
             session()->flash('action_success', __('messages.insert_success', ['attribute' => $formFieldsAccept['name']]));
         }
-
+        
         return response()->json([
             'success'   => true,
-            'url'       => route('admin.category.index'),
+            'url'       => route('admin.category.index', $transformSearch),
         ]);
     }
 

@@ -23,14 +23,6 @@ class CategoryRequest extends FormRequest
      */
     public function rules()
     {
-        // $input      = $this->all();
-        // $required   = 'required';
-        // if (isset($input['id'])) {
-        //     $required = null;
-        //     if (isset($input['image'])) {
-        //         $required = 'required';
-        //     }
-        // }
         return [
             'name'              => 'required',
             'status'            => 'not_in:0',
